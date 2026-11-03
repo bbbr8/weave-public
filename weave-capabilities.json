@@ -1,0 +1,58 @@
+{
+  "version": "weave.capabilities.v1",
+  "data_class": "operational",
+  "observed_at": 0,
+  "registry": {
+    "mode": "template"
+  },
+  "operations": {
+    "search": {
+      "engine": "loom",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "modes": [
+        "exact",
+        "semantic",
+        "structured"
+      ],
+      "programs": {},
+      "qualified_runtime_sha256": null
+    },
+    "read": {
+      "engine": "loom",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "programs": {},
+      "qualified_runtime_sha256": null
+    },
+    "aggregate": {
+      "engine": "olap",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "programs": {},
+      "qualified_runtime_sha256": null
+    },
+    "calculate": {
+      "engine": "tally",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "programs": {},
+      "qualified_runtime_sha256": null
+    },
+    "infer": {
+      "engine": "tally",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "programs": {},
+      "qualified_runtime_sha256": null
+    },
+    "solve": {
+      "engine": "qulap",
+      "runtime_path": null,
+      "adapter_ready": false,
+      "programs": {},
+      "qualified_runtime_sha256": null
+    }
+  },
+  "revision": 2
+}

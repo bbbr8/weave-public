@@ -1,0 +1,9 @@
+{
+  "version": "weave.v1",
+  "steps": [
+    {"id": "hits", "op": "search", "inputs": [], "args": {"query": "synthetic invoice ALPHA-17", "modes": ["exact", "semantic", "structured"], "top_k": 5}},
+    {"id": "totals", "op": "aggregate", "inputs": ["hits"], "args": {"program_ref": "synthetic/monthly_totals.sql"}},
+    {"id": "check", "op": "calculate", "inputs": ["totals"], "args": {"program_ref": "synthetic/check_total.tly"}},
+    {"id": "alternatives", "op": "solve", "inputs": ["check"], "args": {"program_ref": "synthetic/alternatives.model.json"}}
+  ]
+}

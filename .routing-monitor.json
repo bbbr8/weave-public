@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "project_id": "weave-standalone",
+  "entrypoints": [
+    "weave.py",
+    "weave_checks.py",
+    "weave_demo.py",
+    "weave_feedback.py",
+    "weave_infer.py",
+    "weave_loom.py",
+    "weave_loom_bundle.py",
+    "weave_loom_native.py",
+    "weave_olap.py",
+    "weave_olap_native.py",
+    "weave_qulap.py",
+    "weave_registry.py",
+    "weave_run.py",
+    "weave_tally.py",
+    "weave_verify.py"
+  ],
+  "tests": [
+    "test_checks.py",
+    "test_enhancements.py",
+    "test_infer.py",
+    "test_loom.py",
+    "test_olap.py",
+    "test_qulap.py",
+    "test_registry.py",
+    "test_run.py",
+    "test_run_loom.py",
+    "test_run_olap.py",
+    "test_tally.py",
+    "test_verifier.py",
+    "test_weave.py"
+  ],
+  "registries": [
+    "example.json",
+    "weave-capabilities.json"
+  ],
+  "docs": [
+    "README.md"
+  ]
+}

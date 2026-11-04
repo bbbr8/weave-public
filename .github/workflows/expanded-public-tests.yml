@@ -1,0 +1,71 @@
+name: Expanded public engine tests
+
+on:
+  push:
+    branches:
+      - codex/expanded-public-tests-20261104
+    paths:
+      - independent_tests/**
+      - .github/workflows/expanded-public-tests.yml
+  pull_request:
+    paths:
+      - independent_tests/**
+      - .github/workflows/expanded-public-tests.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  engines:
+    name: ${{ matrix.repo }} / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: weave-public
+            ref: 85ec51b5e89dcaf26b2fc1d22528bc07f376058b
+          - repo: loom-public
+            ref: dcbb810e1209acfca4906994cf933e079c22e8cd
+          - repo: tally-public
+            ref: 449a58aba07a3a2d7e6a4d26219689c6c8dc2e32
+          - repo: tell
+            ref: 03b3c21be38b8b4cab2014bdac98f64aae434cf5
+          - repo: vein
+            ref: 44d12c78ccf1c2139fd7e75a17d4a292f2f5d4f4
+          - repo: bootlang
+            ref: 64681f67f4af8689872f2f57db5a6ca6b25789fd
+    steps:
+      - name: Check out review harness
+        uses: actions/checkout@v4
+        with:
+          path: review
+          persist-credentials: false
+      - name: Check out frozen engine source
+        uses: actions/checkout@v4
+        with:
+          repository: bbbr8/${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          path: target
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Set up Node
+        if: matrix.repo == 'loom-public'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install numerical test oracle
+        if: matrix.repo == 'loom-public'
+        run: python -m pip install numpy==2.2.6
+      - name: Record engine revision
+        run: git -C target rev-parse HEAD
+      - name: Run existing portable checks
+        run: python review/independent_tests/run_checks.py --repo ${{ matrix.repo }} --target target
+      - name: Run independent synthetic checks
+        if: always()
+        run: python review/independent_tests/run_checks.py --repo ${{ matrix.repo }} --target target --independent

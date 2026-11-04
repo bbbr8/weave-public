@@ -1,0 +1,39 @@
+name: External real data evaluation
+on:
+  push:
+    branches: [codex/real-data-eval-20261104]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: review
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: bbbr8/loom-public
+          ref: dcbb810e1209acfca4906994cf933e079c22e8cd
+          path: loom
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: bbbr8/tally-public
+          ref: 449a58aba07a3a2d7e6a4d26219689c6c8dc2e32
+          path: tally
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze plan and evaluate external report and scientific data
+        run: python review/independent_tests/real_data_eval.py --loom loom --tally tally --weave review --out real-data-results
+      - name: Retain raw public sources, hashes, plan and every outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-world-evaluation
+          path: real-data-results/

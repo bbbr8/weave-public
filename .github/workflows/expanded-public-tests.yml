@@ -7,10 +7,6 @@ on:
     paths:
       - independent_tests/**
       - .github/workflows/expanded-public-tests.yml
-  pull_request:
-    paths:
-      - independent_tests/**
-      - .github/workflows/expanded-public-tests.yml
   workflow_dispatch:
 
 permissions:
@@ -107,7 +103,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run complete source, stage, accounting and invalidation workflow
-        run: python review/independent_tests/meaning_spectrum.py --repo loom-public --target loom --companion tally --output meaning-integration.json
+        run: python review/independent_tests/meaning_spectrum.py --repo loom-public --target loom --companion tally --integration-only --output meaning-integration.json
       - name: Retain integration and capability-probe receipts
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "task": {
+      "$ref": "task.schema.json"
+    },
+    "program": {
+      "$ref": "program.schema.json"
+    }
+  },
+  "required": [
+    "task",
+    "program"
+  ],
+  "additionalProperties": false
+}

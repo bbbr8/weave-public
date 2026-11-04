@@ -1,0 +1,167 @@
+[
+  {
+    "task": {
+      "id": "example-rules",
+      "context": "File K is recorded.\nIf File K is recorded, then File K is approved.",
+      "question": "Is File K approved?",
+      "question_sha256": "fac08acf34f44c2b0dff6dad96078ece55b41372dfca6ddd4a618cf23329d8ee",
+      "context_sha256": "573d562499027916c69e6899ef99bc13be83d2ff91481f9502de90b55e25f05c",
+      "labels": [
+        "True",
+        "False",
+        "Unknown"
+      ],
+      "policy": {
+        "mode": "truth",
+        "supported": "True",
+        "refuted": "False",
+        "undetermined": "Unknown",
+        "inconsistent": "ABSTAIN",
+        "negative_semantics": "refutation",
+        "basis": "Caller-declared open-world three-way inference"
+      },
+      "query_signature": {
+        "modality": "factual",
+        "quantifier": "unspecified",
+        "polarity": "positive"
+      },
+      "signature_origin": "lexical_or_caller_annotation",
+      "data_class": "synthetic",
+      "operation": "rules"
+    },
+    "program": {
+      "task_id": "example-rules",
+      "question_sha256": "fac08acf34f44c2b0dff6dad96078ece55b41372dfca6ddd4a618cf23329d8ee",
+      "query_signature": {
+        "modality": "factual",
+        "quantifier": "unspecified",
+        "polarity": "positive"
+      },
+      "operation": "rules",
+      "nodes": [
+        {
+          "id": "p1",
+          "text": "File K is recorded.",
+          "quotes": [
+            {
+              "source_id": "context",
+              "quote": "File K is recorded."
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "text": "File K is approved.",
+          "quotes": []
+        },
+        {
+          "id": "p3",
+          "text": "File K is not approved.",
+          "quotes": []
+        }
+      ],
+      "facts": [
+        "p1"
+      ],
+      "rules": [
+        {
+          "if": [
+            "p1"
+          ],
+          "then": "p2",
+          "basis": "Supplied recorded-to-approved rule"
+        }
+      ],
+      "goals": [
+        {
+          "role": "support",
+          "label": "True",
+          "node": "p2",
+          "question_sha256": "fac08acf34f44c2b0dff6dad96078ece55b41372dfca6ddd4a618cf23329d8ee",
+          "query_signature": {
+            "modality": "factual",
+            "quantifier": "unspecified",
+            "polarity": "positive"
+          }
+        },
+        {
+          "role": "refute",
+          "label": "False",
+          "node": "p3",
+          "question_sha256": "fac08acf34f44c2b0dff6dad96078ece55b41372dfca6ddd4a618cf23329d8ee",
+          "query_signature": {
+            "modality": "factual",
+            "quantifier": "unspecified",
+            "polarity": "positive"
+          }
+        }
+      ],
+      "calculation": null,
+      "assumptions": []
+    }
+  },
+  {
+    "task": {
+      "id": "example-money",
+      "context": "Fee A: $148.35. Fee B: $216.75. Credit: $24.10.",
+      "question": "What is the total of both fees after the credit?",
+      "question_sha256": "c40b67654d7598dd49ccfd1fc113c676c4b65eb4b22dd6421f732945d6cd1f4e",
+      "context_sha256": "7f942cdcf1d4d54f67fcbb7eb5b1a5112eedb7a7079126f8e29f2fdf5574ce02",
+      "labels": [],
+      "policy": {
+        "mode": "numeric",
+        "unit": "money",
+        "basis": "Exact sum of stated fees less stated credit"
+      },
+      "query_signature": {
+        "modality": "factual",
+        "quantifier": "unspecified",
+        "polarity": "positive"
+      },
+      "signature_origin": "lexical_or_caller_annotation",
+      "data_class": "synthetic",
+      "operation": "arithmetic"
+    },
+    "program": {
+      "task_id": "example-money",
+      "question_sha256": "c40b67654d7598dd49ccfd1fc113c676c4b65eb4b22dd6421f732945d6cd1f4e",
+      "query_signature": {
+        "modality": "factual",
+        "quantifier": "unspecified",
+        "polarity": "positive"
+      },
+      "operation": "arithmetic",
+      "nodes": [],
+      "facts": [],
+      "rules": [],
+      "goals": [],
+      "calculation": {
+        "operands": [
+          {
+            "name": "fee_a",
+            "value": "148.35",
+            "unit": "money",
+            "source_id": "context",
+            "quote": "Fee A: $148.35."
+          },
+          {
+            "name": "fee_b",
+            "value": "216.75",
+            "unit": "money",
+            "source_id": "context",
+            "quote": "Fee B: $216.75."
+          },
+          {
+            "name": "credit",
+            "value": "24.10",
+            "unit": "money",
+            "source_id": "context",
+            "quote": "Credit: $24.10."
+          }
+        ],
+        "formula": "fee_a + fee_b - credit"
+      },
+      "assumptions": []
+    }
+  }
+]

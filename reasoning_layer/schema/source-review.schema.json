@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "properties": {
+    "unit_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "unit_id": {
+            "type": "string"
+          },
+          "agrees": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "agrees",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "query_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "facet": {
+            "type": "string",
+            "enum": [
+              "actors",
+              "predicate",
+              "modality",
+              "quantifiers",
+              "polarity",
+              "time_scope",
+              "exceptions_conditions"
+            ]
+          },
+          "preserved": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "facet",
+          "preserved",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "unit_reviews",
+    "query_checks"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reasoning layer task v0.2",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "context": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "question_sha256": {
+      "type": "string"
+    },
+    "context_sha256": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "policy": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "truth"
+            },
+            "supported": {
+              "type": "string"
+            },
+            "refuted": {
+              "type": "string"
+            },
+            "undetermined": {
+              "type": "string"
+            },
+            "inconsistent": {
+              "type": "string"
+            },
+            "basis": {
+              "type": "string"
+            },
+            "negative_semantics": {
+              "enum": [
+                "refutation",
+                "non_entailment"
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "supported",
+            "refuted",
+            "undetermined",
+            "inconsistent",
+            "basis",
+            "negative_semantics"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "choice"
+            },
+            "unresolved": {
+              "const": "ABSTAIN"
+            },
+            "conflicting": {
+              "const": "ABSTAIN"
+            },
+            "basis": {
+              "type": "string"
+            },
+            "negative_semantics": {
+              "const": "not_applicable"
+            }
+          },
+          "required": [
+            "mode",
+            "unresolved",
+            "conflicting",
+            "basis"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "numeric"
+            },
+            "unit": {
+              "enum": [
+                "number",
+                "money"
+              ]
+            },
+            "basis": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode",
+            "unit",
+            "basis"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "query_signature": {
+      "type": "object",
+      "properties": {
+        "modality": {
+          "type": "string",
+          "enum": [
+            "factual",
+            "permitted",
+            "required"
+          ]
+        },
+        "quantifier": {
+          "type": "string",
+          "enum": [
+            "all",
+            "some",
+            "unspecified"
+          ]
+        },
+        "polarity": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "negative"
+          ]
+        }
+      },
+      "required": [
+        "modality",
+        "quantifier",
+        "polarity"
+      ],
+      "additionalProperties": false
+    },
+    "data_class": {
+      "enum": [
+        "public",
+        "synthetic",
+        "case_private"
+      ]
+    },
+    "operation": {
+      "enum": [
+        "rules",
+        "arithmetic",
+        "direct",
+        "auto"
+      ]
+    },
+    "signature_origin": {
+      "type": "string"
+    },
+    "exposure": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "context",
+    "question",
+    "question_sha256",
+    "context_sha256",
+    "labels",
+    "policy",
+    "query_signature",
+    "data_class",
+    "operation"
+  ],
+  "additionalProperties": false
+}

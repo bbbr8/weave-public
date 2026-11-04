@@ -1,0 +1,573 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Audited sourced program packet",
+  "type": "object",
+  "properties": {
+    "task": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Reasoning layer task v0.2",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "question_sha256": {
+          "type": "string"
+        },
+        "context_sha256": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "policy": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "truth"
+                },
+                "supported": {
+                  "type": "string"
+                },
+                "refuted": {
+                  "type": "string"
+                },
+                "undetermined": {
+                  "type": "string"
+                },
+                "inconsistent": {
+                  "type": "string"
+                },
+                "basis": {
+                  "type": "string"
+                },
+                "negative_semantics": {
+                  "enum": [
+                    "refutation",
+                    "non_entailment"
+                  ]
+                }
+              },
+              "required": [
+                "mode",
+                "supported",
+                "refuted",
+                "undetermined",
+                "inconsistent",
+                "basis",
+                "negative_semantics"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "choice"
+                },
+                "unresolved": {
+                  "const": "ABSTAIN"
+                },
+                "conflicting": {
+                  "const": "ABSTAIN"
+                },
+                "basis": {
+                  "type": "string"
+                },
+                "negative_semantics": {
+                  "const": "not_applicable"
+                }
+              },
+              "required": [
+                "mode",
+                "unresolved",
+                "conflicting",
+                "basis"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "numeric"
+                },
+                "unit": {
+                  "enum": [
+                    "number",
+                    "money"
+                  ]
+                },
+                "basis": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "mode",
+                "unit",
+                "basis"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "query_signature": {
+          "type": "object",
+          "properties": {
+            "modality": {
+              "type": "string",
+              "enum": [
+                "factual",
+                "permitted",
+                "required"
+              ]
+            },
+            "quantifier": {
+              "type": "string",
+              "enum": [
+                "all",
+                "some",
+                "unspecified"
+              ]
+            },
+            "polarity": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative"
+              ]
+            }
+          },
+          "required": [
+            "modality",
+            "quantifier",
+            "polarity"
+          ],
+          "additionalProperties": false
+        },
+        "data_class": {
+          "enum": [
+            "public",
+            "synthetic",
+            "case_private"
+          ]
+        },
+        "operation": {
+          "enum": [
+            "rules",
+            "arithmetic",
+            "direct",
+            "auto"
+          ]
+        },
+        "signature_origin": {
+          "type": "string"
+        },
+        "exposure": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "context",
+        "question",
+        "question_sha256",
+        "context_sha256",
+        "labels",
+        "policy",
+        "query_signature",
+        "data_class",
+        "operation"
+      ],
+      "additionalProperties": false
+    },
+    "program": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "question_sha256": {
+          "type": "string"
+        },
+        "query_signature": {
+          "type": "object",
+          "properties": {
+            "modality": {
+              "type": "string",
+              "enum": [
+                "factual",
+                "permitted",
+                "required"
+              ]
+            },
+            "quantifier": {
+              "type": "string",
+              "enum": [
+                "all",
+                "some",
+                "unspecified"
+              ]
+            },
+            "polarity": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative"
+              ]
+            }
+          },
+          "required": [
+            "modality",
+            "quantifier",
+            "polarity"
+          ],
+          "additionalProperties": false
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "rules",
+            "arithmetic"
+          ]
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "quotes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "source_id": {
+                      "type": "string",
+                      "enum": [
+                        "context"
+                      ]
+                    },
+                    "quote": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "source_id",
+                    "quote"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "quotes"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "if": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "then": {
+                "type": "string"
+              },
+              "basis": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "if",
+              "then",
+              "basis"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "goals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "support",
+                  "refute",
+                  "choice"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "node": {
+                "type": "string"
+              },
+              "question_sha256": {
+                "type": "string"
+              },
+              "query_signature": {
+                "type": "object",
+                "properties": {
+                  "modality": {
+                    "type": "string",
+                    "enum": [
+                      "factual",
+                      "permitted",
+                      "required"
+                    ]
+                  },
+                  "quantifier": {
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "some",
+                      "unspecified"
+                    ]
+                  },
+                  "polarity": {
+                    "type": "string",
+                    "enum": [
+                      "positive",
+                      "negative"
+                    ]
+                  }
+                },
+                "required": [
+                  "modality",
+                  "quantifier",
+                  "polarity"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "role",
+              "label",
+              "node",
+              "question_sha256",
+              "query_signature"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "calculation": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "operands": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "enum": [
+                          "number",
+                          "money"
+                        ]
+                      },
+                      "source_id": {
+                        "type": "string",
+                        "enum": [
+                          "context"
+                        ]
+                      },
+                      "quote": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "value",
+                      "unit",
+                      "source_id",
+                      "quote"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "formula": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "operands",
+                "formula"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_ledger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "unit_id": {
+                "type": "string"
+              },
+              "disposition": {
+                "type": "string",
+                "enum": [
+                  "represented",
+                  "irrelevant",
+                  "unresolved"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              },
+              "targets": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "unit_id",
+              "disposition",
+              "reason",
+              "targets"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "task_id",
+        "question_sha256",
+        "query_signature",
+        "operation",
+        "nodes",
+        "facts",
+        "rules",
+        "goals",
+        "calculation",
+        "assumptions",
+        "source_ledger"
+      ],
+      "additionalProperties": false
+    },
+    "source_review": {
+      "type": "object",
+      "properties": {
+        "unit_reviews": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "unit_id": {
+                "type": "string"
+              },
+              "agrees": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "unit_id",
+              "agrees",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "query_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "facet": {
+                "type": "string",
+                "enum": [
+                  "actors",
+                  "predicate",
+                  "modality",
+                  "quantifiers",
+                  "polarity",
+                  "time_scope",
+                  "exceptions_conditions"
+                ]
+              },
+              "preserved": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "facet",
+              "preserved",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "unit_reviews",
+        "query_checks"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "task",
+    "program"
+  ],
+  "additionalProperties": false
+}

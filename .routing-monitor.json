@@ -2,6 +2,10 @@
   "version": 1,
   "project_id": "weave-standalone",
   "entrypoints": [
+    "reasoning-layer.ps1",
+    "reasoning_layer/__init__.py",
+    "reasoning_layer/__main__.py",
+    "reasoning_layer/native_worker.py",
     "weave.py",
     "weave_checks.py",
     "weave_demo.py",
@@ -25,6 +29,7 @@
     "test_loom.py",
     "test_olap.py",
     "test_qulap.py",
+    "test_reasoning_layer.py",
     "test_registry.py",
     "test_run.py",
     "test_run_loom.py",
@@ -35,9 +40,17 @@
   ],
   "registries": [
     "example.json",
+    "reasoning_layer/schema/audited-packet.schema.json",
+    "reasoning_layer/schema/audited-program.schema.json",
+    "reasoning_layer/schema/packet.schema.json",
+    "reasoning_layer/schema/program.schema.json",
+    "reasoning_layer/schema/source-review.schema.json",
+    "reasoning_layer/schema/task.schema.json",
     "weave-capabilities.json"
   ],
   "docs": [
-    "README.md"
+    "README.md",
+    "reasoning_layer/README.md",
+    "reasoning_layer/VALIDATION.md"
   ]
 }

@@ -29,4 +29,8 @@ jobs:
                   print('DEV_COUNT',len(data))
                   for x in data[:2]:
                       print('CONVERSATION_SAMPLE',json.dumps({k:v for k,v in x.items() if k not in ['pre_text','post_text','table','qa','qa_0','qa_1']})[:14000])
+          data=json.loads(z.read('data/dev_turn.json'))
+          print('TURN_COUNT',len(data))
+          for x in data[:2]:
+              print('TURN_SAMPLE',json.dumps({k:v for k,v in x.items() if k not in ['pre_text','post_text','table','table_ori','annotation','qa','qa_0','qa_1']})[:12000])
           PY

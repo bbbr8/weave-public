@@ -59,9 +59,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install numerical test oracle
+      - name: Install numerical oracle and document-reader test dependencies
         if: matrix.repo == 'loom-public'
-        run: python -m pip install numpy==2.2.6
+        run: python -m pip install numpy==2.2.6 -r target/requirements-intake.txt
       - name: Record engine revision
         run: git -C target rev-parse HEAD
       - name: Run existing portable checks

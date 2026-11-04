@@ -17,8 +17,19 @@ import sys
 STOP=set('a an the of to in on at by for with as and or is are was were be been this that these those from than which who what when where how do does did can could would should have has had'.split())
 
 
-def canonical(x):return json.dumps(x,sort_keys=True,ensure_ascii=False,separators=(',',':'))
+def canonical(x):return json.dumps(x,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False)
 def sha(x):return hashlib.sha256(x.encode()).hexdigest()
+
+
+def source_json(text):
+    def unique(pairs):
+        obj={}
+        for key,value in pairs:
+            if key in obj:raise ValueError('duplicate JSON key: '+key)
+            obj[key]=value
+        return obj
+    def invalid(value):raise ValueError('nonfinite JSON value: '+value)
+    return json.loads(text,object_pairs_hook=unique,parse_constant=invalid)
 
 
 def terms(query):
@@ -239,14 +250,18 @@ def file_records(paths):
             if ext in ['.jsonl','.ndjson']:
                 with path.open(encoding='utf-8-sig') as f:
                     for line in f:
-                        if line.strip():yield json.loads(line)
+                        if line.strip():yield source_json(line)
             elif ext=='.json':
-                obj=json.loads(path.read_text(encoding='utf-8-sig'));rows=obj if isinstance(obj,list) else obj.get('records')
+                obj=source_json(path.read_text(encoding='utf-8-sig'));rows=obj if isinstance(obj,list) else obj.get('records')
                 if not isinstance(rows,list):raise ValueError('JSON file needs records array')
                 yield from rows
             elif ext=='.csv':
                 with path.open(encoding='utf-8-sig',newline='') as f:
-                    for i,row in enumerate(csv.DictReader(f),2):
+                    reader=csv.DictReader(f)
+                    if not reader.fieldnames or any(not h.strip() for h in reader.fieldnames) or len(reader.fieldnames)!=len(set(reader.fieldnames)):
+                        raise ValueError('CSV needs nonempty unique field names')
+                    for i,row in enumerate(reader,2):
+                        if None in row or any(v is None for v in row.values()):raise ValueError('CSV row does not match header width')
                         yield dict(id=sha(str(path))+':'+str(i),parent_id=str(path),locator=str(path)+':'+str(i),
                                    text='; '.join(k+': '+str(v) for k,v in row.items()),metadata=dict(source_file=str(path),line=i,order=i))
             else:

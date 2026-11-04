@@ -14,7 +14,7 @@ The downloadable evaluation artifact contains an already-built public financial-
 
 ## Inputs and more data
 
-Import text/Markdown, CSV, or JSON/JSONL records. A folder is scanned for these file types. Text files are chunked with overlapping character spans. CSV rows keep field names and line locators. PDF and image extraction must be supplied separately.
+Import text/Markdown, CSV, or JSON/JSONL records. Duplicate JSON keys, duplicate CSV headers, malformed row widths and nonfinite JSON numbers are rejected rather than silently discarded. A folder is scanned for these file types. Text files are chunked with overlapping character spans. CSV rows keep field names and line locators. PDF and image extraction must be supplied separately.
 
 For JSON/JSONL, each record has this form:
 

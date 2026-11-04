@@ -125,5 +125,34 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(r['unresolved_dependencies'][0]['required_id'],'c')
         self.assertEqual(r['unresolved_dependencies'][0]['reason'],'depth_limit')
 
+    def test_parent_context_links_are_traversed(self):
+        self.ix.ingest([row('a','invoice reconciliation'),row('context','unrelated wording',depends_on=['missing'])])
+        r=self.ix.expand('invoice reconciliation');self.assertEqual(r['unresolved_dependencies'][0]['required_id'],'missing')
+
+    def test_csv_duplicate_headers_rejected_without_data_loss(self):
+        p=Path(self.tmp.name)/'data.csv';p.write_text('amount,amount\n12,99\n')
+        with self.assertRaises(ValueError):self.ix.index_files([str(p)])
+        self.assertEqual(self.ix.stats()['records'],0)
+
+    def test_json_duplicate_keys_rejected(self):
+        p=Path(self.tmp.name)/'data.jsonl';p.write_text('{"id":"a","text":"first","text":"second","locator":"native:a"}\n')
+        with self.assertRaises(ValueError):self.ix.index_files([str(p)])
+        self.assertEqual(self.ix.stats()['records'],0)
+
+    def test_reimport_prunes_only_its_own_file(self):
+        a=Path(self.tmp.name)/'a.txt';b=Path(self.tmp.name)/'b.txt';a.write_text('first source');b.write_text('second source')
+        self.ix.index_files([str(a),str(b)]);a.write_text('');self.ix.index_files([str(a)])
+        self.assertEqual(self.ix.stats()['records'],1);self.assertTrue(self.ix.search('second')['hits'])
+
+    def test_failed_reimport_keeps_existing_index(self):
+        p=Path(self.tmp.name)/'data.jsonl';p.write_text(json.dumps(row('a','old wording'))+'\n');self.ix.index_files([str(p)])
+        p.write_text(json.dumps(row('a','new wording'))+'\n'+json.dumps({'id':'broken'})+'\n')
+        with self.assertRaises(ValueError):self.ix.index_files([str(p)])
+        self.assertTrue(self.ix.search('old wording')['hits']);self.assertFalse(self.ix.search('new')['hits'])
+
+    def test_nonfinite_metadata_rejected(self):
+        with self.assertRaises(ValueError):self.ix.ingest([row('a','invoice',amount=float('nan'))])
+        self.assertEqual(self.ix.stats()['records'],0)
+
 
 if __name__=='__main__':unittest.main()

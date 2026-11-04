@@ -22,12 +22,12 @@ import zipfile
 
 FINQA_REF = '0f16e2867befa6840783e58be38c9efb9229d742'
 FINQA_BLOB = '59958c7c3bb3b21f4dff6bc912a0fe0ae710aee0'
-PLAN = dict(version=1, data_class='external_real_report_and_scientific_data',
+PLAN = dict(version=2, data_class='external_real_report_and_scientific_data',
     finqa_split='public test, all records', finqa_ref=FINQA_REF,
     finqa_expected_blob=FINQA_BLOB,
     retrieval=dict(configuration='unmodified SearchIndex defaults', k=[1,3,5,10],
                    scopes=['one supplied report page','all test report pages'],
-                   corpus='pre_text + post_text + table rows only; no QA fields'),
+                   corpus='pre_text + post_text + all table rows, including row zero; no QA fields'),
     execution=dict(input='dataset gold program and table, supplied explicitly',
                    oracle='independent Fraction arithmetic; five-place comparison',
                    operators=['add','subtract','multiply','divide','greater',
@@ -173,7 +173,7 @@ def corpus_rows(item):
     for i,t in enumerate(item['pre_text']+item['post_text']):
         rows.append(dict(id='text_'+str(i),text=t))
     table=item['table'];header=table[0]
-    for i,row in enumerate(table[1:],1):
+    for i,row in enumerate(table):
         text=(header[0]+' ' if header[0] else '')+' '.join('the '+row[0]+' of '+h+' is '+v+' ;' for h,v in zip(header[1:],row[1:]))
         rows.append(dict(id='table_'+str(i),text=' '.join(text.split())))
     return rows

@@ -1,0 +1,53 @@
+name: Fresh development evaluation v2
+on:
+  push:
+    branches:
+      - codex/fresh-eval-20261104
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fresh:
+    name: Fresh / ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: loom-public
+            ref: dcbb810e1209acfca4906994cf933e079c22e8cd
+          - repo: tally-public
+            ref: 449a58aba07a3a2d7e6a4d26219689c6c8dc2e32
+          - repo: weave-public
+            ref: 85ec51b5e89dcaf26b2fc1d22528bc07f376058b
+          - repo: tell
+            ref: 03b3c21be38b8b4cab2014bdac98f64aae434cf5
+          - repo: vein
+            ref: 44d12c78ccf1c2139fd7e75a17d4a292f2f5d4f4
+          - repo: bootlang
+            ref: 64681f67f4af8689872f2f57db5a6ca6b25789fd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: review
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: bbbr8/${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          path: target
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Record tested revision
+        run: git -C target rev-parse HEAD
+      - name: Freeze and execute fresh scenarios
+        run: python review/independent_tests/fresh_eval.py --repo ${{ matrix.repo }} --target target --out fresh-results
+      - name: Retain frozen inputs and individual outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fresh-${{ matrix.repo }}
+          path: fresh-results/

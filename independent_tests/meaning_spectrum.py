@@ -463,12 +463,16 @@ def integration_checks(companion):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--repo',required=True);p.add_argument('--target',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--companion',type=Path)
+    p.add_argument('--integration-only',action='store_true')
     a=p.parse_args();sys.path.insert(0,str(a.target.resolve()));sys.path.insert(0,str((a.target/'runtime').resolve()))
     os.environ['SURD_USAGE']='0';os.environ['TALLY_NO_EXPERIMENT_LOG']='1'
     fn={'loom-public':loom_checks,'tally-public':tally_checks,'weave-public':weave_checks,
         'tell':tell_checks,'bootlang':bootlang_checks,'vein':vein_checks}.get(a.repo)
-    if fn:fn()
-    else:analytics_checks(a.repo)
+    if not a.integration_only:
+        if fn:fn()
+        else:analytics_checks(a.repo)
+    elif a.repo!='loom-public' or not a.companion:
+        p.error('--integration-only requires loom-public and a Tally companion')
     if a.repo=='loom-public' and a.companion:integration_checks(a.companion)
     summary=dict(Counter(r['kind']+':'+r['outcome'] for r in ROWS))
     result=dict(schema='meaning-spectrum-results.v1',repo=a.repo,scenario_count=len(ROWS),summary=summary,scenarios=ROWS,

@@ -146,7 +146,10 @@ class EvidenceIndex:
             # ISO dates sort correctly; missing values do not satisfy the filter.
             if not isinstance(value,str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):raise ValueError('before values need ISO dates')
             date.fromisoformat(value)
-            clauses.append('json_extract(r.metadata, ?) <= ?');args.extend(['$.'+field,value])
+            col='json_extract(r.metadata, ?)'
+            clauses.append(col+" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND "+
+                           'date('+col+') = '+col+' AND '+col+' >= ? AND '+col+' <= ?')
+            args.extend(['$.'+field,'$.'+field,'$.'+field,'$.'+field,'0001-01-01','$.'+field,value])
         return clauses,args
 
     def result(self,row,query=''):

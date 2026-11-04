@@ -154,5 +154,12 @@ class SearchTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.ix.ingest([row('a','invoice',amount=float('nan'))])
         self.assertEqual(self.ix.stats()['records'],0)
 
+    def test_malformed_source_dates_do_not_become_known(self):
+        self.ix.ingest([row('valid','notice',received='2044-01-01'),row('us-format','notice',received='01/01/2044'),
+                        row('invalid-day','notice',received='2043-02-30'),row('unknown','notice',received='unknown')])
+        r=self.ix.search('notice',10,before=dict(received='2044-03-01'))
+        self.assertEqual([h['id'] for h in r['hits']],['valid'])
+        self.assertEqual(self.ix.stats()['records'],4)
+
 
 if __name__=='__main__':unittest.main()

@@ -2,35 +2,36 @@ name: Complex evidence search evaluation
 on:
   push:
     branches: [codex/complex-evidence-search-20261104]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
           path: review
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: bbbr8/tally-public
+          ref: 449a58aba07a3a2d7e6a4d26219689c6c8dc2e32
+          path: tally
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Inspect external conversation format
-        run: |
-          python - <<'PY'
-          import urllib.request,zipfile,io,json
-          b=urllib.request.urlopen('https://raw.githubusercontent.com/czyssrs/ConvFinQA/cf3eed2d5984960bf06bb8145bcea5e80b0222a6/data.zip',timeout=90).read()
-          z=zipfile.ZipFile(io.BytesIO(b))
-          print('FILES',z.namelist())
-          for name in z.namelist():
-              if name.endswith('/dev.json') or name=='dev.json':
-                  data=json.loads(z.read(name))
-                  print('DEV_COUNT',len(data))
-                  for x in data[:2]:
-                      print('CONVERSATION_SAMPLE',json.dumps({k:v for k,v in x.items() if k not in ['pre_text','post_text','table','qa','qa_0','qa_1']})[:14000])
-          data=json.loads(z.read('data/dev_turn.json'))
-          print('TURN_COUNT',len(data))
-          for x in data[:2]:
-              print('TURN_SAMPLE',json.dumps({k:v for k,v in x.items() if k not in ['pre_text','post_text','table','table_ori','annotation','qa','qa_0','qa_1']})[:12000])
-          PY
+      - name: Verify search and provenance mechanics
+        run: python -m unittest discover -s review/independent_tests -p test_evidence_search.py -v
+      - name: Freeze and run larger corpus and complex evaluations
+        run: python review/independent_tests/complex_search_eval.py --tally tally --out complex-results
+      - name: Retain ready search index and every evaluation outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complex-search-index-and-results
+          path: |
+            complex-results/*.json
+            complex-results/evidence.sqlite

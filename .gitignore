@@ -8,3 +8,15 @@ outputs/
 *.sqlite
 *.db
 *.jsonl
+
+# Private local configuration and outputs
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.json
+outputs/
+.venv/
+__pycache__/
+*.pyc

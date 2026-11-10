@@ -1,3 +1,8 @@
+# Historical evaluation record
+
+The following measurements describe an earlier optional integration. The current
+public profile executes local packets only and ships no model or remote transport.
+
 # Reasoning layer validation
 
 The reasoning layer is an experimental tool for making source interpretation and program execution inspectable. The retained trials exposed mistakes that would remain hidden behind an execution score: missing contract permissions, changing query meaning, and rejecting valid uncertainty answers. Version 0.3 addresses source accounting and records the judgments that connect each supplied passage to a program. Its source ledger describes review coverage; semantic correctness is measured separately.
@@ -42,5 +47,3 @@ One exposed prior public contract question and three authored synthetic diagnost
 The initial candidate exposed a bridge mismatch: its valid seven-premise rule exceeded Accrete's six-premise input limit. Version 0.3.1 compiles the conjunction into equivalent smaller rules. Replaying all four frozen final programs produced the expected answers in 19 successful native executions. The separate eight-premise/missing-premise checks add 12 successful executions. The 4/4 replay is an engineering regression check on exposed programs, rather than a fresh model accuracy result. Numeric grading compares exact Decimal values in the declared unit and accepts an optional currency symbol.
 
 The direct baseline already answered all four correctly. This diagnostic demonstrates source accounting and a repaired bridge, while the measured review cost increases substantially. Broader accuracy improvement remains an experimental hypothesis. The full combined repository suite passes 157 tests, comprising 74 retained Weave tests and 83 reasoning-layer tests.
-
-NARRATIVE GAUGE: 16% · plants 0 / payoffs 0 (all closed) · target 10–30%

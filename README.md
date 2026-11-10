@@ -34,4 +34,9 @@ Keep real records, credentials, runtime configuration and generated outputs outs
 
 ## Source-linked model reasoning
 
-The optional [reasoning layer](reasoning_layer/README.md) adds whole-source accounting, explicit query/answer policies, exact calculations and inspectable derivation records around model-written programs. Run `python -m reasoning_layer audit reasoning_layer/example_data/audited-packets.json --output outputs/reasoning/audit.json` for a portable synthetic example. The reference backend uses the standard library; native engines and the Codex model adapter require separate local installations. The [validation record](reasoning_layer/VALIDATION.md) distinguishes software checks, development diagnostics and answer accuracy.
+The optional [reasoning layer](reasoning_layer/README.md) adds whole-source accounting, explicit query/answer policies, exact calculations and inspectable derivation records around model-written programs. Run `python -m reasoning_layer audit reasoning_layer/example_data/audited-packets.json --output outputs/reasoning/audit.json` for a portable synthetic example. The reference backend uses the standard library; external runtimes are optional separate local installations. The [validation record](reasoning_layer/VALIDATION.md) distinguishes software checks, development diagnostics and answer accuracy.
+
+## Local-only public profile
+
+Use local CLI commands and the reference backend. Hosted-provider and remote-machine
+adapters are absent. See [PUBLIC_DISTRIBUTION.md](PUBLIC_DISTRIBUTION.md).

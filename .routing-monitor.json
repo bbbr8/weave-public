@@ -5,7 +5,6 @@
     "reasoning-layer.ps1",
     "reasoning_layer/__init__.py",
     "reasoning_layer/__main__.py",
-    "reasoning_layer/native_worker.py",
     "weave.py",
     "weave_checks.py",
     "weave_demo.py",
@@ -20,7 +19,8 @@
     "weave_registry.py",
     "weave_run.py",
     "weave_tally.py",
-    "weave_verify.py"
+    "weave_verify.py",
+    "independent_tests/real_data_eval.py"
   ],
   "tests": [
     "test_checks.py",
@@ -36,7 +36,8 @@
     "test_run_olap.py",
     "test_tally.py",
     "test_verifier.py",
-    "test_weave.py"
+    "test_weave.py",
+    "test_public_distribution.py"
   ],
   "registries": [
     "example.json",
@@ -51,6 +52,7 @@
   "docs": [
     "README.md",
     "reasoning_layer/README.md",
-    "reasoning_layer/VALIDATION.md"
+    "reasoning_layer/VALIDATION.md",
+    "PUBLIC_DISTRIBUTION.md"
   ]
 }

@@ -1,10 +1,6 @@
-"""Replaceable model protocol and isolated Codex CLI implementation."""
+"""Packet schemas and payload helpers for local caller-supplied programs."""
 import json
-import os
 from pathlib import Path
-import shutil
-import subprocess
-import time
 from .contracts import digest
 
 def obj(properties):return dict(type='object',properties=properties,required=list(properties),additionalProperties=False)
@@ -50,39 +46,16 @@ def audited_payload(tasks):
     return value
 
 class CodexModel:
+    """Compatibility guard: no provider implementation is distributed."""
     def __init__(self,model='gpt-6.1-sol',effort='high'):
         self.model=model;self.effort=effort
     def respond(self,prompt,schema,folder):
-        folder=Path(folder).resolve();folder.mkdir(parents=True,exist_ok=True)
-        statefile=folder/'request.json'
+        statefile=Path(folder)/'request.json'
         if statefile.exists():
-            m=json.loads(statefile.read_text())
-            if m.get('prompt_digest')!=digest(prompt):raise RuntimeError('Pinned model call owns different input')
-            if m.get('model_requested')!=self.model or m.get('effort')!=self.effort:raise RuntimeError('Pinned model call owns different model/settings')
-            old_schema=m.get('schema_digest') or digest(json.loads((folder/'schema.json').read_text()))
-            if old_schema!=digest(schema):raise RuntimeError('Pinned model call owns different output schema')
-            if m.get('exit_code')==0 and (folder/'answer.json').exists():
-                answer=json.loads((folder/'answer.json').read_text())
-                if digest(answer)!=m.get('answer_digest'):raise RuntimeError('Model answer changed after freezing')
-                return answer
-            raise RuntimeError('Model call is pinned/failed; reconcile its existing request instead of duplicating it')
-        (folder/'prompt.txt').write_text(prompt,encoding='utf-8');(folder/'schema.json').write_text(json.dumps(schema),encoding='utf-8')
-        exe=shutil.which('codex.exe')
-        if not exe:raise RuntimeError('Codex CLI unavailable; provide a different model implementation or write a packet for check/execute')
-        argv=[exe,'exec','--ignore-user-config','--ignore-rules','--ephemeral','--skip-git-repo-check','-C',str(folder),'-s','read-only','-m',self.model,'-c','model_reasoning_effort="'+self.effort+'"','-c','project_doc_max_bytes=0','-c','features.memories=false','-c','features.prefer_mxc=true','--disable','apps','--disable','plugins','--disable','shell_tool','--disable','shell_snapshot','--disable','multi_agent','--disable','skill_search','--enable','skip_host_skill_discovery','--json','--color','never','--output-schema',str(folder/'schema.json'),'-o',str(folder/'answer.json'),'-']
-        m=dict(model_requested=self.model,effort=self.effort,prompt_digest=digest(prompt),schema_digest=digest(schema),started_at=time.time(),argv=argv)
-        statefile.write_text(json.dumps(m,indent=2))
-        with (folder/'events.jsonl').open('wb') as out,(folder/'stderr.txt').open('wb') as err:
-            proc=subprocess.Popen(argv,stdin=subprocess.PIPE,stdout=out,stderr=err,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-            m['pid']=proc.pid;statefile.write_text(json.dumps(m,indent=2));proc.communicate(prompt.encode('utf-8'))
-        events=[]
-        for line in (folder/'events.jsonl').read_text(encoding='utf-8').splitlines():
-            try:events.append(json.loads(line))
-            except ValueError:pass
-        used=[e for e in events if e.get('item',{}).get('type') in ['command_execution','mcp_tool_call','web_search','file_change']]
-        m.update(exit_code=proc.returncode,finished_at=time.time(),tool_calls=used,usage=[e.get('usage') for e in events if e.get('type')=='turn.completed'])
-        if proc.returncode==0 and (folder/'answer.json').exists():m['answer_digest']=digest(json.loads((folder/'answer.json').read_text()))
-        statefile.write_text(json.dumps(m,indent=2))
-        if proc.returncode or used or 'answer_digest' not in m:raise RuntimeError('Prediction call failed or used a tool; inspect '+str(folder))
-        return json.loads((folder/'answer.json').read_text())
-
+            state=json.loads(statefile.read_text())
+            if state.get('model_requested')!=self.model or state.get('effort')!=self.effort:
+                raise RuntimeError('Pinned request owns different model/settings')
+            previous=state.get('schema_digest')
+            if previous is not None and previous!=digest(schema):
+                raise RuntimeError('Pinned request owns a different output schema')
+        raise RuntimeError('Provider calls are unavailable. Supply a local packet to check/execute or inject your own local model implementation.')

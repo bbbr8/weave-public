@@ -17,7 +17,6 @@ import re
 import statistics
 import sys
 import time
-import urllib.request
 import zipfile
 
 FINQA_REF = '0f16e2867befa6840783e58be38c9efb9229d742'
@@ -44,10 +43,9 @@ def dump(path, value):
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False, default=str)+'\n')
 
 
-def download(url, path, expected_blob=None):
-    if not path.exists():
-        with urllib.request.urlopen(url, timeout=90) as r:
-            path.write_bytes(r.read())
+def read_dataset(url, path, expected_blob=None):
+    if not path.is_file():
+        raise FileNotFoundError('Supply the pinned dataset file locally: '+str(path))
     b=path.read_bytes()
     blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
     if expected_blob and blob != expected_blob:
@@ -249,22 +247,23 @@ def scientific(name, path, SearchIndex, out):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--loom',required=True);p.add_argument('--tally',required=True);p.add_argument('--weave',required=True);p.add_argument('--out',required=True);a=p.parse_args()
-    out=Path(a.out);out.mkdir(parents=True,exist_ok=True);sources=out/'sources';sources.mkdir(exist_ok=True)
+    p=argparse.ArgumentParser();p.add_argument('--loom',required=True);p.add_argument('--tally',required=True);p.add_argument('--weave',required=True);p.add_argument('--out',required=True);p.add_argument('--sources',type=Path,required=True,help='Directory containing caller-supplied datasets; no downloads');a=p.parse_args()
+    out=Path(a.out);out.mkdir(parents=True,exist_ok=True);sources=a.sources.resolve()
+    if not sources.is_dir():p.error('--sources must be an existing local directory')
     dump(out/'frozen-plan.json',PLAN)
     sys.path.insert(0,str(Path(a.loom).resolve()/'runtime'));from surd_search import SearchIndex
     manifest=[];base='https://raw.githubusercontent.com/czyssrs/FinQA/'+FINQA_REF+'/'
-    manifest.append(download(base+'dataset/test.json',sources/'finqa-test.json',FINQA_BLOB))
+    manifest.append(read_dataset(base+'dataset/test.json',sources/'finqa-test.json',FINQA_BLOB))
     data=json.loads((sources/'finqa-test.json').read_text())
     # Retain full upstream data only in the downloadable run artifact, not git.
-    manifest.append(download(base+'LICENSE',sources/'FinQA-LICENSE.txt'))
+    manifest.append(read_dataset(base+'LICENSE',sources/'FinQA-LICENSE.txt'))
     summary=dict(finqa_total=len(data))
     summary['execution']=finance_execution(data,Path(a.tally).resolve(),Path(a.weave).resolve(),out)
     summary['financial_retrieval']=finance_retrieval(data,SearchIndex,out)
     for name in PLAN['scientific']['datasets']:
         try:
             path=sources/(name+'.zip')
-            manifest.append(download('https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/'+name+'.zip',path))
+            manifest.append(read_dataset('https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/'+name+'.zip',path))
             summary[name]=scientific(name,path,SearchIndex,out)
         except Exception as e:summary[name]=dict(error=type(e).__name__+': '+str(e));print(name.upper()+'_ERROR '+str(e),flush=True)
     dump(out/'source-manifest.json',manifest);dump(out/'SUMMARY.json',summary)

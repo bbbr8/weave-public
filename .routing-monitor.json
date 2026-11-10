@@ -20,7 +20,9 @@
     "weave_registry.py",
     "weave_run.py",
     "weave_tally.py",
-    "weave_verify.py"
+    "weave_verify.py",
+    "weave_select.py",
+    "weave_refine.py"
   ],
   "tests": [
     "test_checks.py",
@@ -36,7 +38,10 @@
     "test_run_olap.py",
     "test_tally.py",
     "test_verifier.py",
-    "test_weave.py"
+    "test_weave.py",
+    "test_select.py",
+    "test_refine.py",
+    "test_refine_hardening.py"
   ],
   "registries": [
     "example.json",

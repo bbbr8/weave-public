@@ -64,8 +64,14 @@ Keep real records, credentials, runtime configuration and generated outputs outs
 
 ## Source-linked model reasoning
 
-The optional [reasoning layer](reasoning_layer/README.md) adds whole-source accounting, explicit query/answer policies, exact calculations and inspectable derivation records around model-written programs. Run `python -m reasoning_layer audit reasoning_layer/example_data/audited-packets.json --output outputs/reasoning/audit.json` for a portable synthetic example. The reference backend uses the standard library; native engines and the Codex model adapter require separate local installations. The [validation record](reasoning_layer/VALIDATION.md) distinguishes software checks, development diagnostics and answer accuracy.
+The optional [reasoning layer](reasoning_layer/README.md) adds whole-source accounting, explicit query/answer policies, exact calculations and inspectable derivation records around model-written programs. Run `python -m reasoning_layer audit reasoning_layer/example_data/audited-packets.json --output outputs/reasoning/audit.json` for a portable synthetic example. The reference backend uses the standard library; external runtimes are optional separate local installations. The distributed reasoning layer uses its local reference backend. The [validation record](reasoning_layer/VALIDATION.md) distinguishes software checks, development diagnostics and answer accuracy.
 
 ## Evaluation hardening
 
 Refinement freezes the request, catalog and observation list before callbacks and records their hashes. Oracles must preserve observed units; mixed units require an explicit oracle unit. Exhausting the 128-check budget returns `CHECK_BUDGET_EXHAUSTED` before calling an oracle. Duplicate proposed IDs are rejected before re-verification. Candidate code remains externally executed; callback assertions remain caller supplied.
+
+## Local-only distribution
+
+No HTTP service, hosted-model adapter, remote-machine bridge or deployment
+configuration is included. Use the CLI or local Python modules. See
+[PUBLIC_DISTRIBUTION.md](PUBLIC_DISTRIBUTION.md).

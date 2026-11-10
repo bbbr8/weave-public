@@ -5,7 +5,6 @@
     "reasoning-layer.ps1",
     "reasoning_layer/__init__.py",
     "reasoning_layer/__main__.py",
-    "reasoning_layer/native_worker.py",
     "weave.py",
     "weave_checks.py",
     "weave_demo.py",
@@ -41,7 +40,9 @@
     "test_weave.py",
     "test_select.py",
     "test_refine.py",
-    "test_refine_hardening.py"
+    "test_refine_hardening.py",
+    "test_public_distribution.py",
+    "test_public_distribution.py"
   ],
   "registries": [
     "example.json",
@@ -56,6 +57,8 @@
   "docs": [
     "README.md",
     "reasoning_layer/README.md",
-    "reasoning_layer/VALIDATION.md"
+    "reasoning_layer/VALIDATION.md",
+    "PUBLIC_DISTRIBUTION.md",
+    "PUBLIC_DISTRIBUTION.md"
   ]
 }

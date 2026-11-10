@@ -15,7 +15,7 @@ def check_tasks(tasks,hosted=False):
         errors=validate_task(t)
         if errors:raise ValueError(t['id']+': '+'; '.join(errors))
         if hosted and {'gold','expected','answer','correct_answer','answer_key'}&set(t):raise ValueError('Scoring fields cannot enter a model task')
-        if hosted and t['data_class'] not in ['public','synthetic']:raise ValueError('Hosted model route accepts only caller-declared public/synthetic inputs; case_private stays on its authorized Mac route')
+        if hosted and t['data_class'] not in ['public','synthetic']:raise ValueError('Hosted model route accepts only caller-declared public/synthetic inputs; private inputs stay within the caller-approved local environment')
 
 def indexed(rows,key,ids):
     result={r[key]:r for r in rows}

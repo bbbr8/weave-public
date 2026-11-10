@@ -1,9 +1,9 @@
 {
   "files": {
     ".gitattributes": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c",
-    ".gitignore": "f99f9cb6b8c1c13b1909892a128d57c7e822994b8c89984fc55b15f4f8e2d3a1",
-    ".routing-monitor.json": "a7bb3caef875e2e2d8fd1afde58ccdae1e072617335b5964b34eabe3cb0d4035",
-    "README.md": "7a6fbb2c29bf91a487b78d4b9e3442513f2a8a6188bc8cfea210197de01e8aaf",
+    ".gitignore": "6f9ab5d3250c02c4db84ff18aeda2c73dd3467eb034cf41200e282903400da40",
+    ".routing-monitor.json": "76d75ed0b444c3c1594ccdc2d04da0b53bed95d86a6084e5d70989a7ac006bca",
+    "README.md": "51214e0ee56318ef6c073f42e3a035904ba78c13400380c6398e26aea960eeff",
     "example.json": "1845799fcddac5318947c052b2958f7027eb1ae3661e8dbe5a2c71945f023554",
     "test_checks.py": "69482c9f19619e2df21becb5287edf453e4e73b54040defb12412c83b8ba7f0b",
     "test_enhancements.py": "90fd31cc0469ec18d7f0984b917c9ccca332c6b1e38df6f2f6191abc8f9140c3",
@@ -38,6 +38,9 @@
     "test_select.py": "a83c47f0235dd124fa2f8c47b9d2180096d417db244d8eee937edfe43c0bd99e",
     "weave_refine.py": "aa705739018ee8fb49aa6f091c00de9f25cfe3180c72d51a66cc8cd28f603d40",
     "test_refine.py": "b97f13c4a3533e4c64d9551d9e70036f801b13a3329342cdd7381635f48003e5",
-    "test_refine_hardening.py": "83c5592b0364f39b477f1df7bfdd86d6470c9abb5166411f88d42f760d541dd5"
-  }
+    "test_refine_hardening.py": "83c5592b0364f39b477f1df7bfdd86d6470c9abb5166411f88d42f760d541dd5",
+    "PUBLIC_DISTRIBUTION.md": "aef28d00ac5121e17bd6e5f278f8ada0cf02fbc24d32a8def9e18ab775798764",
+    "test_public_distribution.py": "dac81fbf6d9e962935f4418b7ffee9bc73ea5205651240e2015e1daf0690cdef"
+  },
+  "public_profile": "local-only; no network service or provider adapter"
 }

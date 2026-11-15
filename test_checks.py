@@ -42,6 +42,13 @@ class ExactCheckTests(unittest.TestCase):
         self.assertEqual(changed_paths({'a/b':True},{'a/b':1}),['/a~1b'])
         self.assertEqual(changed_paths({'x':[1]},{'x':[1,2]}),['/x'])
         with self.assertRaises(ValueError):pointer({'~x':1},'/~x')
+    def test_array_indices_use_ascii_digits_but_object_keys_are_literal(self):
+        self.assertEqual(pointer(["first", "second"], "/1"), "second")
+        self.assertEqual(pointer({"١": "literal"}, "/١"), "literal")
+        for index in ("١", "０１"):
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                pointer(["first", "second"], "/" + index)
+
     def test_malformed_checks_are_rejected_before_execution(self):
         cases=[{'kind':'sum','step':'out','pointer':'/sum','terms':[]},
                {'kind':'range','step':'out','pointer':'/sum','minimum':2,'maximum':1},

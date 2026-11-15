@@ -52,3 +52,16 @@ class RefinementHardening(unittest.TestCase):
             with self.subTest(raw=raw),patch.object(sys,'argv',['weave_refine.py',str(path)]),contextlib.redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as error:
                 main()
             self.assertEqual(error.exception.code,2)
+
+    def test_cli_honors_packet_candidate_limit(self):
+        import json
+        path = self.root / 'limited.json'
+        packet = dict(request=self.request, catalog=self.catalog, candidates=self.candidates,
+                      observations=self.obs, max_candidates=1)
+        path.write_text(json.dumps(packet))
+        stderr = io.StringIO()
+        with patch.object(sys, 'argv', ['weave_refine.py', str(path)]), contextlib.redirect_stderr(stderr):
+            with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as error:
+                main()
+        self.assertEqual(error.exception.code, 2)
+        self.assertIn('Candidate budget exceeded', stderr.getvalue())

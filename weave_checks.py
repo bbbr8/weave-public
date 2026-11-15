@@ -19,7 +19,8 @@ def pointer_parts(path):
 def pointer(value,path):
     for key in pointer_parts(path):
         if isinstance(value,list):
-            if not key.isdigit() or (len(key)>1 and key.startswith('0')):raise ValueError('Invalid list index')
+            if not re.fullmatch(r'0|[1-9][0-9]*', key):
+                raise ValueError('Invalid list index')
             value=value[int(key)]
         elif isinstance(value,dict):value=value[key]
         else:raise ValueError('Pointer traverses a scalar')

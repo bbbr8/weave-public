@@ -111,7 +111,8 @@ def main():
         def oracle(query,history):
             return next((x['answer'] for x in answers if x['step']==query['step'] and x['pointer']==query['pointer']),None)
         result=refine(packet['request'],packet['catalog'],packet['candidates'],packet['observations'],a.packet.parent,
-                      oracle=oracle,max_rounds=packet.get('max_rounds',4))
+                      oracle=oracle, max_rounds=packet.get('max_rounds', 4),
+                      max_candidates=packet.get('max_candidates', 32))
     except (ValueError,KeyError,TypeError,OSError) as exc:parser.exit(2,str(exc)+'\n')
     print(json.dumps(result,indent=2));return 0 if result['state']=='CONVERGED_UNDER_CHECKS' else 1
 

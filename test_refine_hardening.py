@@ -65,3 +65,19 @@ class RefinementHardening(unittest.TestCase):
                 main()
         self.assertEqual(error.exception.code, 2)
         self.assertIn('Candidate budget exceeded', stderr.getvalue())
+
+    def test_refinement_lookahead_respects_both_budgets(self):
+        for rounds, checks, planned in [(3, 1, True), (2, 1, False), (3, 127, False)]:
+            with self.subTest(rounds=rounds, checks=checks):
+                request = copy.deepcopy(self.request)
+                request['checks'] *= checks
+                report = refine(request, self.catalog, self.candidates, self.obs, self.root,
+                                oracle=self.oracle, max_rounds=rounds, lookahead=2)
+                self.assertEqual(report['selected'], 'good')
+                first = report['rounds'][0]['selection']['next_observation']
+                self.assertEqual('conditional_plan' in first, planned)
+
+    def test_bad_lookahead_is_rejected(self):
+        for value in (True, 0, 3):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                refine(self.request, self.catalog, self.candidates, self.obs, self.root, lookahead=value)

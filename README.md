@@ -75,3 +75,12 @@ Refinement freezes the request, catalog and observation list before callbacks an
 No HTTP service, hosted-model adapter, remote-machine bridge or deployment
 configuration is included. Use the CLI or local Python modules. See
 [PUBLIC_DISTRIBUTION.md](PUBLIC_DISTRIBUTION.md).
+
+Selection and refinement packets accept `"lookahead": 2`. For each first
+observation, Weave evaluates the best second question conditional on each
+predicted answer. It selects the first question minimizing the worst remaining
+class count after both answers, then uses the one-step score to break ties.
+`next_observation.conditional_plan` shows those branches. Refinement requests
+an independent answer at each step and recomputes after verification; when only
+one more check can be added and verified it uses the one-step policy. The default
+lookahead is one. All calculations run locally on the supplied artifacts.

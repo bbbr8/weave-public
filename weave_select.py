@@ -14,13 +14,55 @@ from weave_checks import canonical, pointer, pointer_parts
 from weave_verify import digest_json, file_digest, inside, verify
 
 
-def select(request, catalog, candidates, observations, root=Path('.'), now=None):
+def _next_projection(groups, observations, lookahead):
+    # Encode each projection once, keeping JSON types and declared units distinct.
+    keys = [[canonical(value) for value in group['observations']] for group in groups]
+    options = []
+    for index in range(len(observations)):
+        buckets = {}
+        for row, values in enumerate(keys):
+            buckets.setdefault(values[index], []).append(row)
+        if len(buckets) == 1:
+            continue
+        worst = max(map(len, buckets.values()))
+        plan = None
+        if lookahead == 2:
+            branches = []
+            for members in buckets.values():
+                best = (len(members), 0, None)
+                for column in range(len(observations)):
+                    if column == index:
+                        continue
+                    counts = Counter(keys[row][column] for row in members)
+                    if len(counts) > 1:
+                        best = min(best, (max(counts.values()), -len(counts), column))
+                remaining, _, column = best
+                branches.append({'answer': groups[members[0]]['observations'][index],
+                                 'follow_up': observations[column] if column is not None else None,
+                                 'class_count': len(members), 'largest_remaining_class_count': remaining})
+            plan = {'branches': branches, 'largest_after_two': max(
+                branch['largest_remaining_class_count'] for branch in branches)}
+        score = (plan['largest_after_two'] if plan else worst, worst, -len(buckets), index)
+        options.append((score, plan))
+    (_, worst, _, index), plan = min(options, key=lambda option: option[0])
+    choice = {**observations[index], 'largest_remaining_class_count': worst,
+              'current_class_count': len(groups),
+              'predictions': [{'class_id': g['class_id'], **g['observations'][index]} for g in groups],
+              'action': 'Obtain an independently grounded expected value and add a request check.'}
+    if plan is not None:
+        choice['conditional_plan'] = plan
+    return choice
+
+
+def select(request, catalog, candidates, observations, root=Path('.'), now=None, *, lookahead=1):
     """Return classes and an exact minimax next observation over those classes.
 
     Candidate shape: {id, directory, receipts}. Observation: {step, pointer}.
     All directories must be below root; all candidates share request/catalog.
     Equivalence is limited to the explicitly declared projections.
     """
+    if type(lookahead) is not int or lookahead not in (1, 2):
+        raise ValueError('lookahead must be 1 or 2')
     if not isinstance(candidates, list) or not 1 <= len(candidates) <= 32:
         raise ValueError('Supply 1..32 candidate bundles')
     if not isinstance(observations, list) or not 1 <= len(observations) <= 32:
@@ -75,16 +117,7 @@ def select(request, catalog, candidates, observations, root=Path('.'), now=None)
         result['selected']=min(accepted)
     else:
         result['state']='DISAGREEMENT'
-        options=[]
-        for index,spec in enumerate(observations):
-            partitions=Counter(canonical(g['observations'][index]) for g in groups)
-            if len(partitions)>1:
-                options.append((max(partitions.values()),-len(partitions),index))
-        worst,_,index=min(options)
-        result['next_observation']={**observations[index],
-            'largest_remaining_class_count':worst,'current_class_count':len(groups),
-            'predictions':[{'class_id':g['class_id'],**g['observations'][index]} for g in groups],
-            'action':'Obtain an independently grounded expected value and add a request check.'}
+        result['next_observation'] = _next_projection(groups, observations, lookahead)
     return result
 
 
@@ -94,7 +127,8 @@ def main():
     args=parser.parse_args()
     try:
         packet=json.loads(args.packet.read_text())
-        result=select(packet['request'],packet['catalog'],packet['candidates'],packet['observations'],args.packet.parent)
+        result=select(packet['request'],packet['catalog'],packet['candidates'],packet['observations'],args.packet.parent,
+                      lookahead=packet.get('lookahead', 1))
     except (ValueError,KeyError,TypeError,OSError) as exc:
         parser.exit(2,str(exc)+'\n')
     print(json.dumps(result,indent=2))

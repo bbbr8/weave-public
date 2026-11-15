@@ -78,3 +78,30 @@ class CandidateSelection(unittest.TestCase):
             path=self.root/candidate['directory']/'total-result.json';data=json.loads(path.read_text());data['extra']=value
             path.write_text(json.dumps(data));candidate['receipts'][-1]['result_sha256']=file_digest(path)
         self.assertEqual(len(self.run_selection()['classes']),2)
+
+    def test_two_observations_can_favor_a_worse_immediate_split(self):
+        self.weak_request()
+        rows = [(0,0,0,2), (0,0,1,2), (0,2,1,1), (2,0,1,2),
+                (1,1,1,1), (0,1,1,2), (2,0,0,1), (0,0,0,0)]
+        self.obs = [dict(step='total', pointer=f'/extra/{i}') for i in range(4)]
+        for index, row in enumerate(rows):
+            if index:
+                self.add(f'candidate-{index}')
+            candidate = self.candidates[-1]
+            path = self.root / candidate['directory'] / 'total-result.json'
+            data = json.loads(path.read_text())
+            data['extra'] = row
+            path.write_text(json.dumps(data))
+            candidate['receipts'][-1]['result_sha256'] = file_digest(path)
+        self.assertEqual(self.run_selection()['next_observation']['pointer'], '/extra/3')
+        result = select(self.request, self.catalog, self.candidates, self.obs, self.root, lookahead=2)
+        next_obs = result['next_observation']
+        self.assertEqual(next_obs['pointer'], '/extra/2')
+        self.assertEqual(next_obs['largest_remaining_class_count'], 5)
+        plan = next_obs['conditional_plan']
+        self.assertEqual(plan['largest_after_two'], 2)
+        for branch in plan['branches']:
+            subset = [r for r in rows if r[2] == branch['answer']['value']]
+            second = int(branch['follow_up']['pointer'].split('/')[-1])
+            self.assertEqual(branch['largest_remaining_class_count'],
+                             max(sum(r[second] == v for r in subset) for v in range(3)))

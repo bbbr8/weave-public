@@ -84,3 +84,12 @@ class count after both answers, then uses the one-step score to break ties.
 an independent answer at each step and recomputes after verification; when only
 one more check can be added and verified it uses the one-step policy. The default
 lookahead is one. All calculations run locally on the supplied artifacts.
+
+Use a `dot_product` check to verify a sum of products, such as quantities times
+unit prices. The result and every operand reference a verified step output.
+Supply 1–128 pairs of pointers. Integer units and finite decimal strings are
+compared exactly, including cancellation across positive and negative terms.
+
+```json
+{"kind":"dot_product","step":"invoice","pointer":"/total","pairs":[[{"step":"items","pointer":"/quantity"},{"step":"items","pointer":"/price"}],[{"step":"credits","pointer":"/quantity"},{"step":"credits","pointer":"/price"}]]}
+```

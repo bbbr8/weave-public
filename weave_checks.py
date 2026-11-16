@@ -51,6 +51,7 @@ def changed_paths(before,after,path=''):
 
 FIELDS={
  'equals':({'value'},set()),'sum':({'terms'},set()),'product':({'terms'},set()),
+ 'dot_product':({'pairs'},set()),
  'difference':({'left','right'},set()),'range':(set(),{'minimum','maximum','minimum_inclusive','maximum_inclusive'}),
  'unchanged':({'baseline_step','baseline_pointer'},set()),'origin_count':({'source_ids'},set()),
  'set_equals':({'values'},set()),'field_changes':({'baseline_step','baseline_pointer','paths'},set()),
@@ -61,6 +62,8 @@ FIELDS={
 def references(check):
     result=[check['step']]
     if check['kind'] in ('sum','product'):result.extend(t['step'] for t in check['terms'])
+    if check['kind'] == 'dot_product':
+        result.extend(operand['step'] for pair in check['pairs'] for operand in pair)
     if check['kind']=='difference':result.extend(check[k]['step'] for k in ('left','right'))
     if check['kind'] in ('unchanged','field_changes'):result.append(check['baseline_step'])
     return result
@@ -80,6 +83,15 @@ def validate_check(check,step_ids):
     if kind in ('sum','product'):
         if not isinstance(check['terms'],list) or not 1<=len(check['terms'])<=128:raise ValueError('Expected bounded terms')
         for term in check['terms']:ref(term)
+    if kind == 'dot_product':
+        pairs = check['pairs']
+        if not isinstance(pairs, list) or not 1 <= len(pairs) <= 128:
+            raise ValueError('Dot product needs 1..128 pairs')
+        for pair in pairs:
+            if not isinstance(pair, list) or len(pair) != 2:
+                raise ValueError('Each dot product pair needs two operands')
+            for item in pair:
+                ref(item)
     if kind=='difference':
         for key in ('left','right'):ref(check[key])
     if kind in ('unchanged','field_changes'):
@@ -125,6 +137,10 @@ def evaluate_check(check,outputs,receipts,sources):
         if kind=='equals':passed=exact_equal(actual,check['value'])
         elif kind=='sum':passed=exact_number(actual)==sum((exact_number(operand(t)) for t in check['terms']),Fraction(0))
         elif kind=='difference':passed=exact_number(actual)==exact_number(operand(check['left']))-exact_number(operand(check['right']))
+        elif kind == 'dot_product':
+            total = sum((exact_number(operand(left)) * exact_number(operand(right))
+                         for left, right in check['pairs']), Fraction(0))
+            passed = exact_number(actual) == total
         elif kind=='product':
             total=Fraction(1)
             for term in check['terms']:total*=exact_number(operand(term))

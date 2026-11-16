@@ -60,4 +60,24 @@ class ExactCheckTests(unittest.TestCase):
             with self.subTest(case=case),self.assertRaises(ValueError):validate_check(case,set(self.outputs))
 
 
-if __name__=='__main__':unittest.main()
+
+class DotProductTests(unittest.TestCase):
+    def test_exact_cancellation_and_validation(self):
+        ref = lambda k: {'step': k, 'pointer': ''}
+        check = {'kind': 'dot_product', 'step': 'out', 'pointer': '',
+                 'pairs': [[ref('a'),ref('b')],[ref('c'),ref('d')]]}
+        outputs = {'a': 10**50+1, 'b': '0.1', 'c': -(10**50), 'd': '0.1', 'out': '0.1'}
+        receipts = {key: {} for key in outputs}
+        validate_check(check, set(outputs))
+        self.assertTrue(evaluate_check(check, outputs, receipts, {})['passed'])
+        outputs['out'] = 0
+        self.assertFalse(evaluate_check(check, outputs, receipts, {})['passed'])
+        del receipts['d']
+        self.assertEqual(evaluate_check(check, outputs, receipts, {})['status'], 'NOT_EVALUATED')
+        for invalid in [[], [[ref('unknown'),ref('a')]], [[ref('a')]], 'wrong']:
+            with self.assertRaises(ValueError):
+                validate_check({**check, 'pairs': invalid}, set(outputs))
+
+
+if __name__ == "__main__":
+    unittest.main()

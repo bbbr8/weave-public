@@ -19,7 +19,8 @@ def pointer_parts(path):
 def pointer(value,path):
     for key in pointer_parts(path):
         if isinstance(value,list):
-            if not key.isdigit() or (len(key)>1 and key.startswith('0')):raise ValueError('Invalid list index')
+            if not re.fullmatch(r'0|[1-9][0-9]*', key):
+                raise ValueError('Invalid list index')
             value=value[int(key)]
         elif isinstance(value,dict):value=value[key]
         else:raise ValueError('Pointer traverses a scalar')
@@ -29,6 +30,13 @@ def pointer(value,path):
 def exact_number(value):
     if type(value) is int:return Fraction(value)
     if isinstance(value,str) and len(value)<=256:
+        if '/' in value:
+            if not re.fullmatch(r'-?[0-9]+/[0-9]+', value):
+                raise ValueError('Expected integer numerator and positive integer denominator')
+            numerator, denominator = map(int, value.split('/'))
+            if not denominator:
+                raise ValueError('Rational denominator must be positive')
+            return Fraction(numerator, denominator)
         try:result=Decimal(value)
         except InvalidOperation:raise ValueError('Invalid exact decimal')
         if result.is_finite() and -1000<=result.adjusted()<=1000:return Fraction(result)
@@ -50,6 +58,7 @@ def changed_paths(before,after,path=''):
 
 FIELDS={
  'equals':({'value'},set()),'sum':({'terms'},set()),'product':({'terms'},set()),
+ 'dot_product':({'pairs'},set()), 'weighted_mean':({'pairs'},set()),
  'difference':({'left','right'},set()),'range':(set(),{'minimum','maximum','minimum_inclusive','maximum_inclusive'}),
  'unchanged':({'baseline_step','baseline_pointer'},set()),'origin_count':({'source_ids'},set()),
  'set_equals':({'values'},set()),'field_changes':({'baseline_step','baseline_pointer','paths'},set()),
@@ -60,6 +69,8 @@ FIELDS={
 def references(check):
     result=[check['step']]
     if check['kind'] in ('sum','product'):result.extend(t['step'] for t in check['terms'])
+    if check['kind'] in ('dot_product', 'weighted_mean'):
+        result.extend(operand['step'] for pair in check['pairs'] for operand in pair)
     if check['kind']=='difference':result.extend(check[k]['step'] for k in ('left','right'))
     if check['kind'] in ('unchanged','field_changes'):result.append(check['baseline_step'])
     return result
@@ -79,6 +90,15 @@ def validate_check(check,step_ids):
     if kind in ('sum','product'):
         if not isinstance(check['terms'],list) or not 1<=len(check['terms'])<=128:raise ValueError('Expected bounded terms')
         for term in check['terms']:ref(term)
+    if kind in ('dot_product', 'weighted_mean'):
+        pairs = check['pairs']
+        if not isinstance(pairs, list) or not 1 <= len(pairs) <= 128:
+            raise ValueError(f'{kind} needs 1..128 pairs')
+        for pair in pairs:
+            if not isinstance(pair, list) or len(pair) != 2:
+                raise ValueError(f'Each {kind} pair needs two operands')
+            for item in pair:
+                ref(item)
     if kind=='difference':
         for key in ('left','right'):ref(check[key])
     if kind in ('unchanged','field_changes'):
@@ -124,6 +144,23 @@ def evaluate_check(check,outputs,receipts,sources):
         if kind=='equals':passed=exact_equal(actual,check['value'])
         elif kind=='sum':passed=exact_number(actual)==sum((exact_number(operand(t)) for t in check['terms']),Fraction(0))
         elif kind=='difference':passed=exact_number(actual)==exact_number(operand(check['left']))-exact_number(operand(check['right']))
+        elif kind == 'dot_product':
+            total = sum((exact_number(operand(left)) * exact_number(operand(right))
+                         for left, right in check['pairs']), Fraction(0))
+            passed = exact_number(actual) == total
+        elif kind == 'weighted_mean':
+            weighted_sum = Fraction(0)
+            total_weight = Fraction(0)
+            for value_ref, weight_ref in check['pairs']:
+                value = exact_number(operand(value_ref))
+                weight = exact_number(operand(weight_ref))
+                if weight < 0:
+                    raise ValueError('Negative weight')
+                weighted_sum += value * weight
+                total_weight += weight
+            if not total_weight:
+                raise ValueError('Zero total weight')
+            passed = exact_number(actual) * total_weight == weighted_sum
         elif kind=='product':
             total=Fraction(1)
             for term in check['terms']:total*=exact_number(operand(term))

@@ -42,6 +42,13 @@ class ExactCheckTests(unittest.TestCase):
         self.assertEqual(changed_paths({'a/b':True},{'a/b':1}),['/a~1b'])
         self.assertEqual(changed_paths({'x':[1]},{'x':[1,2]}),['/x'])
         with self.assertRaises(ValueError):pointer({'~x':1},'/~x')
+    def test_array_indices_use_ascii_digits_but_object_keys_are_literal(self):
+        self.assertEqual(pointer(["first", "second"], "/1"), "second")
+        self.assertEqual(pointer({"١": "literal"}, "/١"), "literal")
+        for index in ("١", "０１"):
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                pointer(["first", "second"], "/" + index)
+
     def test_malformed_checks_are_rejected_before_execution(self):
         cases=[{'kind':'sum','step':'out','pointer':'/sum','terms':[]},
                {'kind':'range','step':'out','pointer':'/sum','minimum':2,'maximum':1},
@@ -53,4 +60,44 @@ class ExactCheckTests(unittest.TestCase):
             with self.subTest(case=case),self.assertRaises(ValueError):validate_check(case,set(self.outputs))
 
 
-if __name__=='__main__':unittest.main()
+
+class DotProductTests(unittest.TestCase):
+    def test_exact_cancellation_and_validation(self):
+        ref = lambda k: {'step': k, 'pointer': ''}
+        check = {'kind': 'dot_product', 'step': 'out', 'pointer': '',
+                 'pairs': [[ref('a'),ref('b')],[ref('c'),ref('d')]]}
+        outputs = {'a': 10**50+1, 'b': '0.1', 'c': -(10**50), 'd': '0.1', 'out': '0.1'}
+        receipts = {key: {} for key in outputs}
+        validate_check(check, set(outputs))
+        self.assertTrue(evaluate_check(check, outputs, receipts, {})['passed'])
+        outputs['out'] = 0
+        self.assertFalse(evaluate_check(check, outputs, receipts, {})['passed'])
+        del receipts['d']
+        self.assertEqual(evaluate_check(check, outputs, receipts, {})['status'], 'NOT_EVALUATED')
+        for invalid in [[], [[ref('unknown'),ref('a')]], [[ref('a')]], 'wrong']:
+            with self.assertRaises(ValueError):
+                validate_check({**check, 'pairs': invalid}, set(outputs))
+
+
+class WeightedMeanTests(unittest.TestCase):
+    def test_exact_fractional_values_and_weights(self):
+        ref = lambda key: {'step': key, 'pointer': ''}
+        check = {'kind': 'weighted_mean', 'step': 'out', 'pointer': '',
+                 'pairs': [[ref('a'),ref('wa')], [ref('b'),ref('wb')]]}
+        outputs = dict(a='1/3', wa='1/2', b='2/3', wb=1, out='5/9')
+        receipts = {key: {} for key in outputs}
+        validate_check(check, set(outputs))
+        def evaluate():
+            return evaluate_check(check, outputs, receipts, {})
+        self.assertTrue(evaluate()['passed'])
+        outputs['out'] = '0.555555555556'
+        self.assertFalse(evaluate()['passed'])
+        for a,b in [('0','0'),('2','-1'),('1/0',1),('1/-2',1)]:
+            outputs.update(wa=a, wb=b)
+            self.assertEqual(evaluate()['reason'], 'INVALID_ASSERTION_VALUE')
+        del receipts['wa']
+        self.assertEqual(evaluate()['status'], 'NOT_EVALUATED')
+
+
+if __name__ == "__main__":
+    unittest.main()

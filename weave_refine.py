@@ -16,7 +16,9 @@ from weave_verify import digest_json
 
 
 def refine(request,catalog,candidates,observations,root=Path('.'),oracle=None,
-           proposer=None,max_rounds=4,max_candidates=32,now=None):
+           proposer=None,max_rounds=4,max_candidates=32,now=None, *, lookahead=1):
+    if type(lookahead) is not int or lookahead not in (1, 2):
+        raise ValueError('lookahead must be 1 or 2')
     if type(max_rounds) is not int or not 1<=max_rounds<=8:raise ValueError('max_rounds must be 1..8')
     if type(max_candidates) is not int or not 1<=max_candidates<=32:raise ValueError('max_candidates must be 1..32')
     current=copy.deepcopy(request);pool=copy.deepcopy(candidates);history=[];seen_oracles=set()
@@ -25,7 +27,10 @@ def refine(request,catalog,candidates,observations,root=Path('.'),oracle=None,
     if not isinstance(pool,list) or not 1<=len(pool)<=max_candidates:raise ValueError('Candidate budget exceeded')
     state='BUDGET_EXHAUSTED';selection=None
     for index in range(max_rounds):
-        selection=select(current,catalog,pool,observations,root,now)
+        checks = current.get('checks') if isinstance(current, dict) else None
+        can_add_two = isinstance(checks, list) and len(checks) <= 126
+        horizon = 2 if lookahead == 2 and can_add_two and max_rounds - index >= 3 else 1
+        selection=select(current,catalog,pool,observations,root,now,lookahead=horizon)
         row={'round':index,'request_sha256':digest_json(current),'request':copy.deepcopy(current),
              'selection':selection,'candidate_count':len(pool)}
         history.append(row)
@@ -111,7 +116,8 @@ def main():
         def oracle(query,history):
             return next((x['answer'] for x in answers if x['step']==query['step'] and x['pointer']==query['pointer']),None)
         result=refine(packet['request'],packet['catalog'],packet['candidates'],packet['observations'],a.packet.parent,
-                      oracle=oracle,max_rounds=packet.get('max_rounds',4))
+                      oracle=oracle, max_rounds=packet.get('max_rounds', 4),
+                      max_candidates=packet.get('max_candidates', 32), lookahead=packet.get('lookahead', 1))
     except (ValueError,KeyError,TypeError,OSError) as exc:parser.exit(2,str(exc)+'\n')
     print(json.dumps(result,indent=2));return 0 if result['state']=='CONVERGED_UNDER_CHECKS' else 1
 

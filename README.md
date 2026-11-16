@@ -75,3 +75,27 @@ Refinement freezes the request, catalog and observation list before callbacks an
 No HTTP service, hosted-model adapter, remote-machine bridge or deployment
 configuration is included. Use the CLI or local Python modules. See
 [PUBLIC_DISTRIBUTION.md](PUBLIC_DISTRIBUTION.md).
+
+Selection and refinement packets accept `"lookahead": 2`. For each first
+observation, Weave evaluates the best second question conditional on each
+predicted answer. It selects the first question minimizing the worst remaining
+class count after both answers, then uses the one-step score to break ties.
+`next_observation.conditional_plan` shows those branches. Refinement requests
+an independent answer at each step and recomputes after verification; when only
+one more check can be added and verified it uses the one-step policy. The default
+lookahead is one. All calculations run locally on the supplied artifacts.
+
+Use a `dot_product` check to verify a sum of products, such as quantities times
+unit prices. The result and every operand reference a verified step output.
+Supply 1–128 pairs of pointers. Integer units and finite decimal strings are
+compared exactly, including cancellation across positive and negative terms.
+
+```json
+{"kind":"dot_product","step":"invoice","pointer":"/total","pairs":[[{"step":"items","pointer":"/quantity"},{"step":"items","pointer":"/price"}],[{"step":"credits","pointer":"/quantity"},{"step":"credits","pointer":"/price"}]]}
+```
+
+A `weighted_mean` check uses the same `pairs` structure as `dot_product`, with
+each pair ordered as value, weight. Weights must be nonnegative and at least
+one must be positive. Arithmetic operands and results also accept fraction
+strings such as `"5/9"`. Values 1/3 and 2/3 with weights 1/2 and 1 therefore
+verify against 5/9 exactly.

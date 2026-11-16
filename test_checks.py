@@ -79,5 +79,25 @@ class DotProductTests(unittest.TestCase):
                 validate_check({**check, 'pairs': invalid}, set(outputs))
 
 
+class WeightedMeanTests(unittest.TestCase):
+    def test_exact_fractional_values_and_weights(self):
+        ref = lambda key: {'step': key, 'pointer': ''}
+        check = {'kind': 'weighted_mean', 'step': 'out', 'pointer': '',
+                 'pairs': [[ref('a'),ref('wa')], [ref('b'),ref('wb')]]}
+        outputs = dict(a='1/3', wa='1/2', b='2/3', wb=1, out='5/9')
+        receipts = {key: {} for key in outputs}
+        validate_check(check, set(outputs))
+        def evaluate():
+            return evaluate_check(check, outputs, receipts, {})
+        self.assertTrue(evaluate()['passed'])
+        outputs['out'] = '0.555555555556'
+        self.assertFalse(evaluate()['passed'])
+        for a,b in [('0','0'),('2','-1'),('1/0',1),('1/-2',1)]:
+            outputs.update(wa=a, wb=b)
+            self.assertEqual(evaluate()['reason'], 'INVALID_ASSERTION_VALUE')
+        del receipts['wa']
+        self.assertEqual(evaluate()['status'], 'NOT_EVALUATED')
+
+
 if __name__ == "__main__":
     unittest.main()

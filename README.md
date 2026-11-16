@@ -93,3 +93,9 @@ compared exactly, including cancellation across positive and negative terms.
 ```json
 {"kind":"dot_product","step":"invoice","pointer":"/total","pairs":[[{"step":"items","pointer":"/quantity"},{"step":"items","pointer":"/price"}],[{"step":"credits","pointer":"/quantity"},{"step":"credits","pointer":"/price"}]]}
 ```
+
+A `weighted_mean` check uses the same `pairs` structure as `dot_product`, with
+each pair ordered as value, weight. Weights must be nonnegative and at least
+one must be positive. Arithmetic operands and results also accept fraction
+strings such as `"5/9"`. Values 1/3 and 2/3 with weights 1/2 and 1 therefore
+verify against 5/9 exactly.
